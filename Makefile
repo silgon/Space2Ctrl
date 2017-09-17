@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -W -Wall -O2
+CFLAGS = -W -Wall -O2 -std=c++11
 LIBS = -lX11 -lXtst
 PREFIX = /usr
 BINPREFIX = $(PREFIX)/bin

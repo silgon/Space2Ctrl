@@ -24,6 +24,7 @@
 #include <X11/extensions/XTest.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <map>
 
 using namespace std;
 
@@ -49,9 +50,10 @@ class Key
 public:
     int id;  // id that is pressed
     int r_id;  // replacement id
+    int a_id;  // alternate id (such as ctrl-left, alt-right, etc)
     bool down;
     struct timeval start;
-    Key(int id, int r_id): id(id), r_id(r_id), down(false){
+    Key(int id, int r_id, int a_id): id(id), r_id(r_id), a_id(a_id), down(false){
     }
     // virtual ~Key();
 };
@@ -118,7 +120,10 @@ class Space2Ctrl {
 
         CallbackClosure *userData = (CallbackClosure *) priv;
         XRecordDatum *data = (XRecordDatum *) hook->data;
-        static Key k_o = Key(39, 252);
+        static Key k_o = Key(39, 252, XK_Control_L);
+        static Key k_n = Key(46, 253, XK_Control_R);
+        static std::map<int,Key*> ctrls{{k_o.id, &k_o},
+                {k_n.id, &k_n}};
         // static bool k_o.down = false;
         // static bool key_combo = false;
         static bool c_right= false, c_left=false, a_left = false;
@@ -158,14 +163,24 @@ class Space2Ctrl {
                     a_left = true;
                 // get control and r_alt variable
                 r_ctrl = c_left||c_right;
-                f_ctrl = k_o.down;
-                if (c == k_o.id && r_ctrl){
-                    XTestFakeKeyEvent(userData->ctrlDisplay, k_o.r_id, True, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, k_o.r_id, False, CurrentTime);
+                f_ctrl = k_o.down||k_n.down; // for now it is easier one by one
+                if (ctrls.count(c)!=0 && r_ctrl){
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      True, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      False, CurrentTime);
                 }
-                else if (c == k_o.id && f_ctrl){
-                    XTestFakeKeyEvent(userData->ctrlDisplay, k_o.r_id, True, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, k_o.r_id, False, CurrentTime);
+                else if (ctrls.count(c)!=0 && f_ctrl){
+                    XTestFakeKeyEvent(userData->ctrlDisplay, XK_Control_L,
+                                      True, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      True, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      False, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, XK_Control_L,
+                                      False, CurrentTime);
+                } else if (ctrls.count(c)!=0){
+                    ctrls[c]->down=true;
                 }
 
 
@@ -181,7 +196,8 @@ class Space2Ctrl {
                     a_left = false;
                 else if(c==k_o.id)
                     k_o.down=false;
-
+                else if(ctrls.count(c)!=0)
+                    ctrls[c]->down=false;
                 break;
             }
         case ButtonPress:
@@ -196,6 +212,14 @@ class Space2Ctrl {
                 // break;
             }
         }
+        if (k_o.down)
+          cout << "k_o.down = true" << endl;
+        else
+          cout << "k_o.down = false" << endl;
+        if (k_n.down)
+          cout << "k_n.down = true" << endl;
+        else
+          cout << "k_n.down = false" << endl;
 
         XRecordFreeData(hook);
     }

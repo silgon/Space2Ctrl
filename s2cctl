@@ -9,12 +9,14 @@ start() {
 	# xmodmap -e "keycode 255 = space VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
 	xmodmap -e "keycode 39 ="
 	xmodmap -e "keycode 252 = o O o O oslash Oslash oslash"
+	xmodmap -e "keycode 46 ="
+	xmodmap -e "keycode 253 = n N n N eng ENG eng"
 	# xmodmap -e "keycode 39 = VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
     # keycode  39 = o O o O oslash Oslash oslash
     # keycode  41 = u U u U aring Aring aring
     # keycode  44 = r R r R registered trademark registered
     # keycode  46 = n N n N eng ENG eng
-
+    ${0%/*}/s2c
 	nohup "${0%/*}/s2c" >> "$logfile" 2>&1 &
 	sleep 1 # Don't ask me why but we need to wait more than one second else the ctrl modifier is
 		# reinitialized to XK_Control_L XK_Control_R as soon as keycode 65 is pressed!
@@ -28,6 +30,8 @@ stop() {
 	# newmap=$(echo ${origmap} | perl -pe "s/ Control_L/ space/g")
 	xmodmap -e "keycode  39 = o O o O oslash Oslash oslash"
 	xmodmap -e "keycode 252 ="
+	xmodmap -e "keycode  46 = n N n N eng ENG eng"
+	xmodmap -e "keycode 253 ="
 	xmodmap -e "clear control"
 	xmodmap -e "add control = Control_L"
 	xmodmap -e "add control = Control_R"
