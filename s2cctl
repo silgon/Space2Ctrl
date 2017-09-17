@@ -2,12 +2,19 @@
 logfile="$HOME/.Space2Ctrl.log"
 
 start() {
-	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
+	# origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
 	#newmap=$(echo ${origmap} | perl -pe "s/65[[:blank:]]*?=[[:blank:]]*?space/65  = Control_L/")
-	newmap=$(echo ${origmap} | perl -pe "s/ space/ Control_L/g")
+	# newmap=$(echo ${origmap} | perl -pe "s/ space/ Control_L/g")
 
-	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 = space VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+	# xmodmap -e "keycode 255 = space VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+	xmodmap -e "keycode 39 ="
+	xmodmap -e "keycode 252 = o O o O oslash Oslash oslash"
+	# xmodmap -e "keycode 39 = VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+    # keycode  39 = o O o O oslash Oslash oslash
+    # keycode  41 = u U u U aring Aring aring
+    # keycode  44 = r R r R registered trademark registered
+    # keycode  46 = n N n N eng ENG eng
+
 	nohup "${0%/*}/s2c" >> "$logfile" 2>&1 &
 	sleep 1 # Don't ask me why but we need to wait more than one second else the ctrl modifier is
 		# reinitialized to XK_Control_L XK_Control_R as soon as keycode 65 is pressed!
@@ -17,10 +24,10 @@ start() {
 }
 
 stop() {
-	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
-	newmap=$(echo ${origmap} | perl -pe "s/ Control_L/ space/g")
-	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 ="
+	# origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
+	# newmap=$(echo ${origmap} | perl -pe "s/ Control_L/ space/g")
+	xmodmap -e "keycode  39 = o O o O oslash Oslash oslash"
+	xmodmap -e "keycode 252 ="
 	xmodmap -e "clear control"
 	xmodmap -e "add control = Control_L"
 	xmodmap -e "add control = Control_R"
