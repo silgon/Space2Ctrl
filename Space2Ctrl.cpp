@@ -1,4 +1,4 @@
-/* 
+/*
    Compile with:
    g++ -o Space2Ctrl Space2Ctrl.cpp -W -Wall -L/usr/X11R6/lib -lX11 -lXtst
 
@@ -18,13 +18,15 @@
 */
 
 #include <iostream>
+#include <map>
+#include <algorithm>
+
 #include <X11/Xlibint.h>
 #include <X11/keysym.h>
 #include <X11/extensions/record.h>
 #include <X11/extensions/XTest.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <map>
 
 using namespace std;
 
@@ -110,6 +112,13 @@ class Space2Ctrl {
                  + (t1.tv_usec - t2.tv_usec) ) / 1000;
     }
 
+    static bool hit_or_mod(std::map<int,Key*> keymaps, int c){
+        return  std::accumulate(keymaps.begin(), keymaps.end(), false,
+                                [c] (bool value, const std::map<int, Key*>::value_type& p)
+                                { return value ||  (p.second->down &&  p.second->id != c); });
+
+    }
+
     // Called from Xserver when new event occurs.
     static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
 
@@ -134,6 +143,7 @@ class Space2Ctrl {
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
 
+
         // cout << "\nState:" << c << endl;
         // if (k_o.down)
         //   cout << "k_o.down = true" << endl;
@@ -150,7 +160,9 @@ class Space2Ctrl {
         // // else
         // //   cout << "modifier_down = false" << endl;
         // cout << endl;
-
+        // std::for_each(ctrls.begin(), ctrls.end(), CallMyMethod);
+        // std::accumulate(ctrls.begin(), ctrls.end(), false, [c] (bool value, const std::map<int, Key*>::value_type& p)
+        //                 { return value ||  (p.second->down &&  p.second->id != c); });
         switch (t) {
         case KeyPress:
             {
@@ -170,7 +182,8 @@ class Space2Ctrl {
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       False, CurrentTime);
                 }
-                else if (ctrls.count(c)!=0 && f_ctrl){
+                else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
+                    cout << "another fake key is pressed as control" << "\n";
                     XTestFakeKeyEvent(userData->ctrlDisplay, XK_Control_L,
                                       True, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
@@ -212,14 +225,14 @@ class Space2Ctrl {
                 // break;
             }
         }
-        if (k_o.down)
-          cout << "k_o.down = true" << endl;
-        else
-          cout << "k_o.down = false" << endl;
-        if (k_n.down)
-          cout << "k_n.down = true" << endl;
-        else
-          cout << "k_n.down = false" << endl;
+        // if (k_o.down)
+        //   cout << "k_o.down = true" << endl;
+        // else
+        //   cout << "k_o.down = false" << endl;
+        // if (k_n.down)
+        //   cout << "k_n.down = true" << endl;
+        // else
+        //   cout << "k_n.down = false" << endl;
 
         XRecordFreeData(hook);
     }
