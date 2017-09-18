@@ -119,6 +119,13 @@ class Space2Ctrl {
 
     }
 
+    static bool anydown(std::map<int,Key*> keymaps){
+        return  std::accumulate(keymaps.begin(), keymaps.end(), false,
+                                [] (bool value, const std::map<int, Key*>::value_type& p)
+                                { return value ||  p.second->down; });
+
+    }
+
     // Called from Xserver when new event occurs.
     static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
 
@@ -140,6 +147,7 @@ class Space2Ctrl {
         // static bool modifier_down = false;
         // static struct timeval startWait, endWait;
         static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
+        static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
 
@@ -183,8 +191,6 @@ class Space2Ctrl {
                                       false, CurrentTime);
                 }
                 else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
-                    cout << "another fake key is pressed as control" << "\n";
-
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
@@ -195,6 +201,18 @@ class Space2Ctrl {
                                       false, CurrentTime);
                 } else if (ctrls.count(c)!=0){
                     ctrls[c]->down=true;
+                } else if(f_ctrl && ctrls.count(c)==0){  // keys other than fake ctrls
+                    cout << "here: "<<c << "\n";
+                    // XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                    //                   true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      false, CurrentTime);
                 }
 
 
