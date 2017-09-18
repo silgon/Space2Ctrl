@@ -139,7 +139,7 @@ class Space2Ctrl {
         static bool r_ctrl, f_ctrl, r_alt, f_alt; // real and fake control and alt
         // static bool modifier_down = false;
         // static struct timeval startWait, endWait;
-
+        static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
 
@@ -178,20 +178,21 @@ class Space2Ctrl {
                 f_ctrl = k_o.down||k_n.down; // for now it is easier one by one
                 if (ctrls.count(c)!=0 && r_ctrl){
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      True, CurrentTime);
+                                      true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      False, CurrentTime);
+                                      false, CurrentTime);
                 }
                 else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
                     cout << "another fake key is pressed as control" << "\n";
-                    XTestFakeKeyEvent(userData->ctrlDisplay, XK_Control_L,
-                                      True, CurrentTime);
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      True, CurrentTime);
+                                      true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      False, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, XK_Control_L,
-                                      False, CurrentTime);
+                                      false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      false, CurrentTime);
                 } else if (ctrls.count(c)!=0){
                     ctrls[c]->down=true;
                 }
@@ -235,6 +236,7 @@ class Space2Ctrl {
         //   cout << "k_n.down = false" << endl;
 
         XRecordFreeData(hook);
+        // XFlush(userData->ctrlDisplay);
     }
 
 public:
