@@ -152,8 +152,8 @@ class Space2Ctrl {
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
-
-        key_pair tmp(c,bool(c));
+        cout << "type: " << bool(t) << "\n";
+        key_pair tmp(c, t==KeyPress?true:false); // if keypress true, else false
         if (std::find(fakes.begin(), fakes.end(), tmp) != fakes.end()){
             cout << "one fake occurence skipped: " << c <<"," << t<< "\n";
             auto it = std::find(fakes.begin(),fakes.end(),tmp);
