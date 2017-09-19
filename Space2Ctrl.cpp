@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <map>
+#include <list>
 #include <algorithm>
 
 #include <X11/Xlibint.h>
@@ -69,6 +70,7 @@ class Space2Ctrl {
     XRecordRange *recRange;
     XRecordClientSpec recClientSpec;
     XRecordContext recContext;
+    std::list<std::pair<int,int>> fakes;
 
     void setupXTestExtension(){
         int ev, er, ma, mi;
@@ -151,6 +153,9 @@ class Space2Ctrl {
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
 
+        int key = ((unsigned char*) hook->data)[1];
+        int type = ((unsigned char*) hook->data)[0] & 0x7F;
+        int repeat = hook->data[2] & 1;
 
         // cout << "\nState:" << c << endl;
         // if (k_o.down)
