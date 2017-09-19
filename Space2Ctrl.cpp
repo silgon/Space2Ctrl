@@ -153,9 +153,15 @@ class Space2Ctrl {
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
+        // short
+        int key = ((unsigned char*) hook->data)[1];
+        int type = ((unsigned char*) hook->data)[0] & 0x7F;
+        int repeat = hook->data[2] & 1;
+
+        // verify that the pressed key is not in the fake keys
         key_pair tmp(c, t==KeyPress?true:false); // if keypress true, else false
         if (std::find(fakes.begin(), fakes.end(), tmp) != fakes.end()){
-            cout << "one fake occurence skipped: " << c <<"," << t<< "\n";
+            cout << "one fake occurence skipped: " << tmp.first <<"," << int(tmp.second)<< "\n";
             auto it = std::find(fakes.begin(),fakes.end(),tmp);
             // check that there actually is a 3 in our vector
             if (it != fakes.end()) {
@@ -163,9 +169,9 @@ class Space2Ctrl {
             }            
             return;
         }
-        int key = ((unsigned char*) hook->data)[1];
-        int type = ((unsigned char*) hook->data)[0] & 0x7F;
-        int repeat = hook->data[2] & 1;
+        // if key is escape, leave (because this generates some problems)
+        if(c==9 || repeat)  // avoid repeats for now
+            return;
 
         // cout << "\nState:" << c << endl;
         // if (k_o.down)
@@ -200,46 +206,51 @@ class Space2Ctrl {
                 r_ctrl = c_left||c_right;
                 f_ctrl = k_o.down||k_n.down; // for now it is easier one by one
                 if (ctrls.count(c)!=0 && r_ctrl){
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       false, CurrentTime);
                 }
                 else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      false, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      false, CurrentTime);
                     fakes.push_back(std::make_pair(c_left_id, true));
                     fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
                     fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
                     fakes.push_back(std::make_pair(c_left_id, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      false, CurrentTime);
                 } else if (ctrls.count(c)!=0){
                     ctrls[c]->down=true;
                 } else if(f_ctrl && ctrls.count(c)==0){  // keys other than fake ctrls
                     cout << "here: "<<c << "\n";
-                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
-                                      false, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                                      false, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      false, CurrentTime);
                     fakes.push_back(std::make_pair(backspace_id, true));
                     fakes.push_back(std::make_pair(backspace_id, false));
                     fakes.push_back(std::make_pair(c_left_id, true));
-                    fakes.push_back(std::make_pair(c, true));
+                    // fakes.push_back(std::make_pair(c, true)); // it doesn't not happen
                     fakes.push_back(std::make_pair(c, false));
                     fakes.push_back(std::make_pair(c_left_id, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      false, CurrentTime);
+                    // combo
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      false, CurrentTime);
                 }
 
 
