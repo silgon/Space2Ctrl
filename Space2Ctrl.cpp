@@ -149,10 +149,10 @@ class Space2Ctrl {
         // static bool modifier_down = false;
         // static struct timeval startWait, endWait;
         static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
+        static int c_right_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R);
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
-        cout << "type: " << bool(t) << "\n";
         key_pair tmp(c, t==KeyPress?true:false); // if keypress true, else false
         if (std::find(fakes.begin(), fakes.end(), tmp) != fakes.end()){
             cout << "one fake occurence skipped: " << c <<"," << t<< "\n";
@@ -222,8 +222,10 @@ class Space2Ctrl {
                     ctrls[c]->down=true;
                 } else if(f_ctrl && ctrls.count(c)==0){  // keys other than fake ctrls
                     cout << "here: "<<c << "\n";
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
-                    //                   true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      false, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c,
@@ -232,6 +234,12 @@ class Space2Ctrl {
                                       false, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       false, CurrentTime);
+                    fakes.push_back(std::make_pair(backspace_id, true));
+                    fakes.push_back(std::make_pair(backspace_id, false));
+                    fakes.push_back(std::make_pair(c_left_id, true));
+                    fakes.push_back(std::make_pair(c, true));
+                    fakes.push_back(std::make_pair(c, false));
+                    fakes.push_back(std::make_pair(c_left_id, false));
                 }
 
 
