@@ -61,7 +61,7 @@ public:
     // virtual ~Key();
 };
 
-
+typedef std::pair<int,bool> key_pair;
 class Space2Ctrl {
 
     string m_displayName;
@@ -70,7 +70,6 @@ class Space2Ctrl {
     XRecordRange *recRange;
     XRecordClientSpec recClientSpec;
     XRecordContext recContext;
-    std::list<std::pair<int,int>> fakes;
 
     void setupXTestExtension(){
         int ev, er, ma, mi;
@@ -130,6 +129,7 @@ class Space2Ctrl {
 
     // Called from Xserver when new event occurs.
     static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
+        static std::list<key_pair> fakes;
 
         if (hook->category != XRecordFromServer) {
             XRecordFreeData(hook);
@@ -153,6 +153,16 @@ class Space2Ctrl {
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
 
+        key_pair tmp(c,bool(c));
+        if (std::find(fakes.begin(), fakes.end(), tmp) != fakes.end()){
+            cout << "one fake occurence skipped: " << c <<"," << t<< "\n";
+            auto it = std::find(fakes.begin(),fakes.end(),tmp);
+            // check that there actually is a 3 in our vector
+            if (it != fakes.end()) {
+                fakes.erase(it);
+            }            
+            return;
+        }
         int key = ((unsigned char*) hook->data)[1];
         int type = ((unsigned char*) hook->data)[0] & 0x7F;
         int repeat = hook->data[2] & 1;
@@ -204,6 +214,10 @@ class Space2Ctrl {
                                       false, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       false, CurrentTime);
+                    fakes.push_back(std::make_pair(c_left_id, true));
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
+                    fakes.push_back(std::make_pair(c_left_id, false));
                 } else if (ctrls.count(c)!=0){
                     ctrls[c]->down=true;
                 } else if(f_ctrl && ctrls.count(c)==0){  // keys other than fake ctrls
