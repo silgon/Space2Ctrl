@@ -147,7 +147,7 @@ class Space2Ctrl {
         static bool c_right= false, c_left=false, a_left = false;
         static bool r_ctrl, f_ctrl, r_alt, f_alt; // real and fake control and alt
         // static bool modifier_down = false;
-        // static struct timeval startWait, endWait;
+        static struct timeval startWait, endWait;
         static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
         static int c_right_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R);
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
@@ -170,7 +170,7 @@ class Space2Ctrl {
             return;
         }
         // if key is escape, leave (because this generates some problems)
-        if(c==9 || repeat)  // avoid repeats for now
+        if(c==9)  // avoid repeats for now
             return;
 
         // cout << "\nState:" << c << endl;
@@ -230,13 +230,21 @@ class Space2Ctrl {
                 } else if (ctrls.count(c)!=0){
                     ctrls[c]->down=true;
                 } else if(f_ctrl && ctrls.count(c)==0){  // keys other than fake ctrls
+                    gettimeofday(&startWait, NULL);
+                    // if ( diff_ms(endWait, startWait) < 500 ) {
+                    //     return;
+                    // }
                     cout << "here: "<<c << "\n";
                     fakes.push_back(std::make_pair(backspace_id, true));
                     fakes.push_back(std::make_pair(backspace_id, false));
                     fakes.push_back(std::make_pair(c_left_id, true));
-                    // fakes.push_back(std::make_pair(c, true)); // it doesn't not happen
+                    fakes.push_back(std::make_pair(c, true)); // it doesn't not happen
+                    fakes.push_back(std::make_pair(c, false));
                     fakes.push_back(std::make_pair(c, false));
                     fakes.push_back(std::make_pair(c_left_id, false));
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+
 
                     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
                                       true, CurrentTime);
@@ -246,11 +254,14 @@ class Space2Ctrl {
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
                                       true, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c,
                                       false, CurrentTime);
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       false, CurrentTime);
+                    gettimeofday(&endWait, NULL);
                 }
 
 
