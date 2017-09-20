@@ -127,6 +127,13 @@ class Space2Ctrl {
 
     }
 
+    static bool anyreal(std::map<int,Key*> keymaps, int c){
+        return  std::accumulate(keymaps.begin(), keymaps.end(), false,
+                                [c] (bool value, const std::map<int, Key*>::value_type& p)
+                                { return value ||  (p.second->r_id==c); });
+
+    }
+
     // Called from Xserver when new event occurs.
     static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
         static std::list<key_pair> fakes;
@@ -157,11 +164,17 @@ class Space2Ctrl {
         int type = ((unsigned char*) hook->data)[0] & 0x7F;
         int repeat = hook->data[2] & 1;
 
-        if(repeat){
-            cout << "here we are repeating" << "\n";
+        cout << "fakes: ";
+        for (auto &f: fakes) {
+            cout << f.first << "-" <<f.second <<",";
         }
+        cout << "\n";
+
         // verify that the pressed key is not in the fake keys
         key_pair tmp(c, t==KeyPress?true:false); // if keypress true, else false
+        if(repeat){
+            cout << "repeating ("<<tmp.first <<","<<tmp.second<<")" << "\n";
+        }
         if (std::find(fakes.begin(), fakes.end(), tmp) != fakes.end()){
             cout << "one fake occurence skipped: " << tmp.first <<"," << int(tmp.second)<< "\n";
             auto it = std::find(fakes.begin(),fakes.end(),tmp);
@@ -170,6 +183,9 @@ class Space2Ctrl {
                 fakes.erase(it);
             }            
             return;
+        }
+        if(repeat){
+            cout << "repeat passed fakes" << "\n";
         }
         // if key is escape, leave (because this generates some problems)
         if(c==9)  // avoid repeats for now
@@ -209,6 +225,7 @@ class Space2Ctrl {
                 r_ctrl = c_left||c_right;
                 f_ctrl = anydown(ctrls); // for now it is easier one by one
                 if (ctrls.count(c)!=0 && r_ctrl){
+                    cout << "real ctrl+ fake ctrl" << "\n";
                     fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
                     // fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
@@ -217,24 +234,26 @@ class Space2Ctrl {
                     //                   false, CurrentTime);
                 }
                 else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
-                    if (!repeat){
+                    cout << "fake ctrl + other fake ctrl" << "\n";
+                    // if (!repeat){
                         fakes.push_back(std::make_pair(c_left_id, true));
                         XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                           true, CurrentTime);
-                    }
+                    // }
                     fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
-                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
-                    // fakes.push_back(std::make_pair(c_left_id, false));
+                    fakes.push_back(std::make_pair(c_left_id, false));
 
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       true, CurrentTime);
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                    //                   false, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      false, CurrentTime);
                     // XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                     //                   false, CurrentTime);
                 } else if (ctrls.count(c)!=0){
+                    cout << "fake ctrl alone" << "\n";
                     ctrls[c]->down=true;
                 } else if(f_ctrl && ctrls.count(c)==0 && !repeat){  // keys other than fake ctrls
+                    cout << "fake ctrl (active) + current: a non fake ctrl key + non-repeat" << "\n";
                     gettimeofday(&startWait, NULL);
                     // if ( diff_ms(endWait, startWait) < 500 ) {
                     //     return;
@@ -308,6 +327,7 @@ class Space2Ctrl {
 
         XRecordFreeData(hook);
         // XFlush(userData->ctrlDisplay);
+        // XSync(userData->ctrlDisplay, true);
     }
 
 public:
