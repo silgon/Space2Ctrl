@@ -158,6 +158,7 @@ class Space2Ctrl {
         static int c_right_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R);
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
         static int pressed_c=-1; // -1 means nothing is pressed
+        static int old_c = -1;
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
         // short
@@ -294,8 +295,8 @@ class Space2Ctrl {
                 //     //                   false, CurrentTime);
                 //     gettimeofday(&endWait, NULL);
                 // }
-
-
+                if(!repeat) // just in case added the repeat parameter
+                    old_c =c;
                 break;
             }
         case KeyRelease:
