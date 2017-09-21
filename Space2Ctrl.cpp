@@ -237,6 +237,12 @@ class Space2Ctrl {
                     // XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                     //                   false, CurrentTime);
                 }
+                else if(ctrls.count(c)!=0){
+                    cout << "pressing ctrl for fake keypress" << "\n";
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
+                    ctrls[c]->down=true;
+                }
                 // else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
                 //     cout << "fake ctrl + other fake ctrl" << "\n";
                 //     // if (!repeat){
@@ -302,10 +308,11 @@ class Space2Ctrl {
                     a_left = false;
                 else if(ctrls.count(c)!=0)
                     ctrls[c]->down=false;
-                // if(!anydown(ctrls)){
-                //     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                //                       false, CurrentTime);
-                // }
+                if(!anydown(ctrls)){
+                    cout << "release ctrl key" << "\n";
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      false, CurrentTime);
+                }
                 if(pressed_c==c){
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       false, CurrentTime);
