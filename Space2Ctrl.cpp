@@ -251,24 +251,24 @@ class Space2Ctrl {
                     pressed_c = c;
 
                 }
-                else if(ctrls.count(c)==0 && ctrls.count(old_c)!=0){
-                    cout << "fake ctrl pressed, then any other key " << "\n";
-                    // send backspaces
-                    // TODO: this is not working yet
-                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
-                    fakes.push_back(std::make_pair(c_left_id, false));
+                // else if(ctrls.count(c)==0 && ctrls.count(old_c)!=0){
+                //     cout << "fake ctrl pressed, then any other key " << "\n";
+                //     // send backspaces
+                //     // TODO: this is not working yet
+                //     fakes.push_back(std::make_pair(backspace_id, true));
+                //     fakes.push_back(std::make_pair(backspace_id, false));
 
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      false, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      true, CurrentTime);
-                    ctrls[c]->down=true;
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                                      true, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                //                       true, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                //                       false, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //                       true, CurrentTime);
+                //     ctrls[c]->down=true;
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                //                       true, CurrentTime);
 
-                }
+                // }
                 // else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
                 //     cout << "fake ctrl + other fake ctrl" << "\n";
                 //     // if (!repeat){
