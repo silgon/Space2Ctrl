@@ -157,6 +157,7 @@ class Space2Ctrl {
         static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
         static int c_right_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R);
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
+        static int pressed_c=-1; // -1 means nothing is pressed
         unsigned char t = data->event.u.u.type;
         int c = data->event.u.u.detail;
         // short
@@ -186,6 +187,8 @@ class Space2Ctrl {
         }
         if(repeat){
             cout << "repeat passed fakes" << "\n";
+            cout << "leaving anyway" << "\n";
+            return;
         }
         // if key is escape, leave (because this generates some problems)
         if(c==9)  // avoid repeats for now
@@ -226,64 +229,65 @@ class Space2Ctrl {
                 f_ctrl = anydown(ctrls); // for now it is easier one by one
                 if (ctrls.count(c)!=0 && r_ctrl){
                     cout << "real ctrl+ fake ctrl" << "\n";
-                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
                     // fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       true, CurrentTime);
+                    pressed_c = c;
                     // XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                     //                   false, CurrentTime);
                 }
-                else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
-                    cout << "fake ctrl + other fake ctrl" << "\n";
-                    // if (!repeat){
-                        fakes.push_back(std::make_pair(c_left_id, true));
-                        XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                          true, CurrentTime);
-                    // }
-                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
-                    fakes.push_back(std::make_pair(c_left_id, false));
+                // else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
+                //     cout << "fake ctrl + other fake ctrl" << "\n";
+                //     // if (!repeat){
+                //         fakes.push_back(std::make_pair(c_left_id, true));
+                //         XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //                           true, CurrentTime);
+                //     // }
+                //     fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                //     fakes.push_back(std::make_pair(c_left_id, false));
 
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      false, CurrentTime);
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                    //                   false, CurrentTime);
-                } else if (ctrls.count(c)!=0){
-                    cout << "fake ctrl alone" << "\n";
-                    ctrls[c]->down=true;
-                } else if(f_ctrl && ctrls.count(c)==0 && !repeat){  // keys other than fake ctrls
-                    cout << "fake ctrl (active) + current: a non fake ctrl key + non-repeat" << "\n";
-                    gettimeofday(&startWait, NULL);
-                    // if ( diff_ms(endWait, startWait) < 500 ) {
-                    //     return;
-                    // }
-                    cout << "here: "<<c << "\n";
-                    fakes.push_back(std::make_pair(backspace_id, true));
-                    fakes.push_back(std::make_pair(backspace_id, false));
-                    fakes.push_back(std::make_pair(c_left_id, true));
-                    fakes.push_back(std::make_pair(c, true)); // it doesn't not happen
-                    // fakes.push_back(std::make_pair(c, false));
-                    // fakes.push_back(std::make_pair(c, false));
-                    fakes.push_back(std::make_pair(c_left_id, false));
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                                      false, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                //                       true, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                //                       false, CurrentTime);
+                //     // XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //     //                   false, CurrentTime);
+                // } else if (ctrls.count(c)!=0){
+                //     cout << "fake ctrl alone" << "\n";
+                //     ctrls[c]->down=true;
+                // } else if(f_ctrl && ctrls.count(c)==0 && !repeat){  // keys other than fake ctrls
+                //     cout << "fake ctrl (active) + current: a non fake ctrl key + non-repeat" << "\n";
+                //     gettimeofday(&startWait, NULL);
+                //     // if ( diff_ms(endWait, startWait) < 500 ) {
+                //     //     return;
+                //     // }
+                //     cout << "here: "<<c << "\n";
+                //     fakes.push_back(std::make_pair(backspace_id, true));
+                //     fakes.push_back(std::make_pair(backspace_id, false));
+                //     fakes.push_back(std::make_pair(c_left_id, true));
+                //     fakes.push_back(std::make_pair(c, true)); // it doesn't not happen
+                //     // fakes.push_back(std::make_pair(c, false));
+                //     // fakes.push_back(std::make_pair(c, false));
+                //     fakes.push_back(std::make_pair(c_left_id, false));
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                //                       false, CurrentTime);
 
-                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
-                                      true, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
-                                      false, CurrentTime);
-                    // combo
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      true, CurrentTime);
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                    //                   false, CurrentTime);
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                                      true, CurrentTime);
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, c,
-                    //                   false, CurrentTime);
-                    gettimeofday(&endWait, NULL);
-                }
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                //                       true, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                //                       false, CurrentTime);
+                //     // combo
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //                       true, CurrentTime);
+                //     // XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                //     //                   false, CurrentTime);
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                //                       true, CurrentTime);
+                //     // XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                //     //                   false, CurrentTime);
+                //     gettimeofday(&endWait, NULL);
+                // }
 
 
                 break;
@@ -298,8 +302,12 @@ class Space2Ctrl {
                     a_left = false;
                 else if(ctrls.count(c)!=0)
                     ctrls[c]->down=false;
-                if(!anydown(ctrls)){
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                // if(!anydown(ctrls)){
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //                       false, CurrentTime);
+                // }
+                if(pressed_c==c){
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       false, CurrentTime);
                 }
                 break;
