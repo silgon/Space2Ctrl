@@ -266,11 +266,16 @@ class Space2Ctrl {
                     XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
                                       false, CurrentTime);
 
+
+                    // unpress the current (c) key
+                    fakes.push_back(std::make_pair(c, false));
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
                     // fake ctrl
-                    fakes.push_back(std::make_pair(c_left_id, true));
+                    // fakes.push_back(std::make_pair(c_left_id, true));
                     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
                                       true, CurrentTime);
-                    c_left=true;
+                    // c_left=true;
                     ctrls[old_c]->down=true;
                     XTestFakeKeyEvent(userData->ctrlDisplay, c,
                                       true, CurrentTime);
