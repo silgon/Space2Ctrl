@@ -215,12 +215,13 @@ class Space2Ctrl {
         // std::for_each(ctrls.begin(), ctrls.end(), CallMyMethod);
         // std::accumulate(ctrls.begin(), ctrls.end(), false, [c] (bool value, const std::map<int, Key*>::value_type& p)
         //                 { return value ||  (p.second->down &&  p.second->id != c); });
+        r_ctrl = c_left||c_right;
+        f_ctrl = anydown(ctrls); // for now it is easier one by one
+
         switch (t) {
         case KeyPress:
             {
                 gettimeofday(&new_pressed, NULL);
-                r_ctrl = c_left||c_right;
-                f_ctrl = anydown(ctrls); // for now it is easier one by one
 
                 // verify the first modifiers
                 if(c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
@@ -401,12 +402,16 @@ class Space2Ctrl {
                 else if(ctrls.count(c)!=0 && ctrls[c]->down){
                     ctrls[c]->down=false;
                     old_c=-1; // to avoid ctrl commands
+                    if(!anydown(ctrls) && !f_ctrl)
+                        XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                          false, CurrentTime);
+
                 }
-                if(!anydown(ctrls)){
-                    cout << "release ctrl key" << "\n";
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      false, CurrentTime);
-                }
+                // if(!anydown(ctrls)){
+                //     cout << "release ctrl key" << "\n";
+                //     XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                //                       false, CurrentTime);
+                // }
                 if(pressed_fake_c==c){
                     XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
                                       false, CurrentTime);
