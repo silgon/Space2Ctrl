@@ -229,8 +229,33 @@ class Space2Ctrl {
                     c_right = true;
                 else if(c == XKeysymToKeycode(userData->ctrlDisplay, XK_Alt_L))
                     a_left = true;
+                else if (ctrls.count(c)!=0 && r_ctrl){
+                    cout << "real ctrl+ fake ctrl" << "\n";
+                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      true, CurrentTime);
+                    pressed_fake_c = c;
+                    // XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                    //                   false, CurrentTime);
+                }
+                else if(ctrls.count(c)!=0 && ctrls.count(old_c)!=0 && old_c!=c){
+                    cout << "pressing two fake ctrl keys " << "\n";
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
+                                      true, CurrentTime);
+                    // TODO: verify if needed to add to fakes
+                    ctrls[c]->down=true;
+                    ctrls[old_c]->down=true;
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      true, CurrentTime);
+                    // this variable is activated for fake keys
+                    pressed_fake_c = c;
+
+                }
                 // get control and r_alt variable
-                else if(diff_ms(new_pressed, old_pressed) < 400 && ctrls.count(c)==0
+                else if(diff_ms(new_pressed, old_pressed) < 250 && ctrls.count(c)==0
                         && ctrls.count(old_c)!=0 && ctrls[old_c]->down){
                     cout << "fake ctrl pressed, then fastly any other key:" <<c<< "\n";
                     // clear last character
@@ -264,31 +289,6 @@ class Space2Ctrl {
                                       false, CurrentTime);
                     // then this is completely false (or else it is call one more time)
                     ctrls[old_c]->down=false;
-
-                }
-                else if (ctrls.count(c)!=0 && r_ctrl){
-                    cout << "real ctrl+ fake ctrl" << "\n";
-                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
-                    // fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      true, CurrentTime);
-                    pressed_fake_c = c;
-                    // XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                    //                   false, CurrentTime);
-                }
-                else if(ctrls.count(c)!=0 && ctrls.count(old_c)!=0 && old_c!=c){
-                    cout << "pressing two fake ctrl keys " << "\n";
-                    XTestFakeKeyEvent(userData->ctrlDisplay, c_left_id,
-                                      true, CurrentTime);
-                    // TODO: verify if needed to add to fakes
-                    ctrls[c]->down=true;
-                    ctrls[old_c]->down=true;
-                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
-
-                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
-                                      true, CurrentTime);
-                    // this variable is activated for fake keys
-                    pressed_fake_c = c;
 
                 }
                 else if(ctrls.count(c)==0 && ctrls.count(old_c)!=0){
