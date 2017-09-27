@@ -153,7 +153,7 @@ class Space2Ctrl {
         static bool c_right= false, c_left=false, a_left = false;
         static bool r_ctrl, f_ctrl, r_alt, f_alt; // real and fake control and alt
         // static bool modifier_down = false;
-        static struct timeval startWait, endWait;
+        static struct timeval old_pressed, new_pressed;
         static int c_left_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L);
         static int c_right_id = XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R);
         static int backspace_id = XKeysymToKeycode(userData->ctrlDisplay, XK_BackSpace);
@@ -218,6 +218,7 @@ class Space2Ctrl {
         switch (t) {
         case KeyPress:
             {
+                gettimeofday(&new_pressed, NULL);
                 r_ctrl = c_left||c_right;
                 f_ctrl = anydown(ctrls); // for now it is easier one by one
 
@@ -337,6 +338,7 @@ class Space2Ctrl {
                 // }
                 if(!repeat) // just in case added the repeat parameter
                     old_c = c;
+                old_pressed = new_pressed;
                 break;
             }
         case KeyRelease:
