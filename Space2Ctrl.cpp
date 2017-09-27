@@ -280,9 +280,10 @@ class Space2Ctrl {
                     XTestFakeKeyEvent(userData->ctrlDisplay, c,
                                       true, CurrentTime);
                 }
-                // else if(ctrls.count(c)!=0){
-                //     ctrls[c]->down=true;
-                // }
+                else if(ctrls.count(c)!=0){
+                    cout << "ctrl only with c: " << c << "\n";
+                    ctrls[c]->down=true;
+                }
                 // else if (ctrls.count(c)!=0 && hit_or_mod(ctrls, c)){
                 //     cout << "fake ctrl + other fake ctrl" << "\n";
                 //     // if (!repeat){
@@ -340,6 +341,19 @@ class Space2Ctrl {
             }
         case KeyRelease:
             {
+                if(ctrls.count(c)!=0 && ctrls[c]->down && !c_left && !c_right){
+                    cout << "release fake ctrl: " << c << "\n";
+                    ctrls[c]->down=false;
+                    old_c=-1;
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
+                    fakes.push_back(std::make_pair(ctrls[c]->r_id, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[c]->r_id,
+                                      false, CurrentTime);
+                }
+
                 if(c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     c_left = false;
                 else if(c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R))
