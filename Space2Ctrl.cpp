@@ -230,6 +230,42 @@ class Space2Ctrl {
                 else if(c == XKeysymToKeycode(userData->ctrlDisplay, XK_Alt_L))
                     a_left = true;
                 // get control and r_alt variable
+                else if(diff_ms(new_pressed, old_pressed) < 400 && ctrls.count(c)==0
+                        && ctrls.count(old_c)!=0 && ctrls[old_c]->down){
+                    cout << "fake ctrl pressed, then fastly any other key:" <<c<< "\n";
+                    // clear last character
+                    fakes.push_back(std::make_pair(backspace_id, true));
+                    fakes.push_back(std::make_pair(backspace_id, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, backspace_id,
+                                      false, CurrentTime);
+
+                    // release last character
+                    fakes.push_back(std::make_pair(c, false));
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+
+                    fakes.push_back(std::make_pair(ctrls[old_c]->r_id, true));
+                    fakes.push_back(std::make_pair(ctrls[old_c]->r_id, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[old_c]->r_id,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, ctrls[old_c]->r_id,
+                                      false, CurrentTime);
+
+                    fakes.push_back(std::make_pair(c, true));
+                    fakes.push_back(std::make_pair(c, false));
+
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      true, CurrentTime);
+                    XTestFakeKeyEvent(userData->ctrlDisplay, c,
+                                      false, CurrentTime);
+                    // then this is completely false (or else it is call one more time)
+                    ctrls[old_c]->down=false;
+
+                }
                 else if (ctrls.count(c)!=0 && r_ctrl){
                     cout << "real ctrl+ fake ctrl" << "\n";
                     // fakes.push_back(std::make_pair(ctrls[c]->r_id, true));
